@@ -143,6 +143,6 @@ bool UnixPlatform::pollKeyEvent(KeyEvent &event)
     return false;
 }
 
-void UnixPlatform::clearScreen() { writeStr("\x1b[%d;%dH", y + 1, x + 1); }
+void UnixPlatform::clearScreen() { writeStr("\x1b[2J\x1b[H"); }
 
 #endif
