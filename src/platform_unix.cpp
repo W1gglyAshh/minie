@@ -136,7 +136,13 @@ bool UnixPlatform::pollKeyEvent(KeyEvent &event)
                 event.ch = c;
             }
         }
+
+        return true;
     }
+
+    return false;
 }
+
+void UnixPlatform::clearScreen() { writeStr("\x1b[%d;%dH", y + 1, x + 1); }
 
 #endif
