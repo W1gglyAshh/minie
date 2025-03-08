@@ -1,5 +1,4 @@
-#include "platform.hpp"
-#if defined (__APPLE__) || defined (__unix__)
+#if defined(__APPLE__) || defined(__unix__)
 
 #include "platform_unix.hpp"
 
@@ -16,10 +15,7 @@ UnixPlatform::UnixPlatform() : is_rawmode(false)
     memset(&orig_termios, 0, sizeof(orig_termios));
 }
 
-UnixPlatform::~UnixPlatform()
-{
-    disableRawMode();
-}
+UnixPlatform::~UnixPlatform() { disableRawMode(); }
 
 bool UnixPlatform::init() { return true; }
 
@@ -62,7 +58,7 @@ bool UnixPlatform::pollKeyEvent(KeyEvent &event)
                 return true;
             }
 
-            if (seq[0] = '[')
+            if (seq[0] == '[')
             {
                 switch (seq[1])
                 {
@@ -102,15 +98,16 @@ bool UnixPlatform::pollKeyEvent(KeyEvent &event)
             {
                 switch (seq[1])
                 {
-                    case 'H':
-                        event.code = KeyCode::HOME;
-                        break;
-                    case 'F':
-                        event.code = KeyCode::END;
-                        break;
+                case 'H':
+                    event.code = KeyCode::HOME;
+                    break;
+                case 'F':
+                    event.code = KeyCode::END;
+                    break;
                 }
             }
-        } else
+        }
+        else
         {
             if (c == 127)
             {
@@ -144,5 +141,62 @@ bool UnixPlatform::pollKeyEvent(KeyEvent &event)
 }
 
 void UnixPlatform::clearScreen() { writeStr("\x1b[2J\x1b[H"); }
+
+void UnixPlatform::setCursorPos(int x, int y)
+{
+    char buf[32];
+    snprintf(buf, sizeof(buf), "\x1b[%d;%dH", y + 1, x + 1);
+    writeStr(buf);
+}
+
+void UnixPlatform::writeStr(const std::string &str)
+{
+    write(STDIN_FILENO, str.c_str(), str.length());
+}
+
+void UnixPlatform::refreshScreen()
+{
+    // no explicit refresh needed on unix
+}
+
+void UnixPlatform::enableRawMode()
+{
+    if (is_rawmode)
+        return;
+
+    if (tcgetattr(STDIN_FILENO, &orig_termios) == -1)
+        return;
+
+    struct termios raw = orig_termios;
+
+    // input flags
+    raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
+
+    // output flag
+    raw.c_oflag &= ~(OPOST);
+
+    // local flags
+    // echo off, canonical off, no extended functions, no signal chars
+    raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+
+    // immediate return
+    raw.c_cc[VMIN] = 0;
+    // 100ms timeout
+    raw.c_cc[VTIME] = 1;
+
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) < 0)
+        return;
+
+    is_rawmode = true;
+}
+
+void UnixPlatform::disableRawMode()
+{
+    if (!is_rawmode)
+        return;
+
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+    is_rawmode = false;
+}
 
 #endif
