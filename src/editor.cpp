@@ -249,4 +249,20 @@ void Editor::processKeyEvent(const KeyEvent &event)
         }
         is_modified = true;
     }
+    else if (event.code == KeyCode::BACKSPACE)
+    {
+        if (cursor_x > 0)
+        {
+            cursor_x--;
+            buffer->deleteChar(cursor_y, cursor_x);
+            is_modified = true;
+        }
+        else if (cursor_y > 0)
+        {
+            cursor_x = buffer->getLineLength(cursor_y - 1);
+            buffer->joinLines(cursor_y - 1);
+            cursor_y--;
+            is_modified = true;
+        }
+    }
 }
