@@ -265,4 +265,17 @@ void Editor::processKeyEvent(const KeyEvent &event)
             is_modified = true;
         }
     }
+    else if (event.code == KeyCode::DELETE)
+    {
+        if (cursor_x < static_cast<int>(buffer->getLineLength(cursor_y)))
+        {
+            buffer->deleteChar(cursor_y, cursor_x);
+            is_modified = true;
+        }
+        else if (cursor_y < static_cast<int>(buffer->getLineCount()) - 1)
+        {
+            buffer->joinLines(cursor_y);
+            is_modified = true;
+        }
+    }
 }
