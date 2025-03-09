@@ -6,7 +6,7 @@
 
 #include "platform_windows.hpp"
 
-#elif defined (__APPLE__) || defined(__unix__)
+#elif defined(__APPLE__) || defined(__unix__)
 
 #include "platform_unix.hpp"
 
@@ -16,11 +16,11 @@ std::unique_ptr<Platform> Platform::createPlatform()
 {
 #ifdef _WIN32
 
-    return std::make_unique(new WindowsPlatform());
+    return std::make_unique<WindowsPlatform>();
 
-#elif defined (__APPLE__) || defined (__unix__)
+#elif defined(__APPLE__) || defined(__unix__)
 
-    return std::make_unique(new UnixPlatform());
+    return std::make_unique<UnixPlatform>();
 #else
 #error "Unsupported platform!"
 

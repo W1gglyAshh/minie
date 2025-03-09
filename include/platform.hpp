@@ -1,6 +1,5 @@
 #pragma once
 
-#include <functional>
 #include <string>
 
 enum class KeyCode
@@ -28,12 +27,12 @@ struct KeyEvent
     char ch;
     bool shift;
     bool ctrl;
-    bool alt;    
+    bool alt;
 };
 
 class Platform
 {
-public:
+  public:
     virtual ~Platform() = default;
 
     virtual bool init() = 0;
@@ -53,5 +52,5 @@ public:
     virtual void enableRawMode() = 0;
     virtual void disableRawMode() = 0;
 
-    static Platform *createPlatform();
+    static std::unique_ptr<Platform> createPlatform();
 };

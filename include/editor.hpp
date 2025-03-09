@@ -1,11 +1,10 @@
 #pragma once
 
-#include "platform.hpp"
 #include "buffer.hpp"
+#include "platform.hpp"
 
-#include <string>
-#include <vector>
 #include <memory>
+#include <string>
 
 enum class EditorMode
 {
@@ -15,7 +14,7 @@ enum class EditorMode
 
 class Editor
 {
-private:
+  private:
     std::unique_ptr<Platform> platform;
     std::unique_ptr<TextBuffer> buffer;
     EditorMode mode;
@@ -39,7 +38,7 @@ private:
     void toggleCmdPalette();
     void renderCmdPalette();
 
-public:
+  public:
     Editor();
     ~Editor();
 
