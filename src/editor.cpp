@@ -223,3 +223,30 @@ void Editor::renderCmdPalette()
     // poisition cursor at the end of the cmd
     platform->setCursorPos(palette_x + 1 + cmd_buffer.length(), palette_y);
 }
+
+void Editor::processKeyEvent(const KeyEvent &event)
+{
+    if (event.code == KeyCode::CHAR)
+    {
+        buffer->insertChar(cursor_y, cursor_x, event.ch);
+        cursor_x++;
+        is_modified = true;
+    }
+    else if (event.code == KeyCode::ENTER)
+    {
+        buffer->splitLine(cursor_y, cursor_x);
+        cursor_x = 0;
+        cursor_y++;
+        is_modified = true;
+    }
+    else if (event.code == KeyCode::TAB)
+    {
+        // 4 spaces for each tab
+        for (int i = 0; i < 4; i++)
+        {
+            buffer->insertChar(cursor_y, cursor_x, ' ');
+            cursor_x++;
+        }
+        is_modified = true;
+    }
+}
