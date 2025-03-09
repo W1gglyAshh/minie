@@ -184,3 +184,42 @@ void Editor::updateScreen()
 
     platform->refreshScreen();
 }
+
+void Editor::renderCmdPalette()
+{
+    // calc cmd palette position
+    int palette_w = std::min(40, screen_w - 4);
+    int palette_x = (screen_w - palette_w) / 2;
+    int palette_y = 2;
+
+    // draw background
+    for (int y = palette_y; y < palette_y + 3; ++y)
+    {
+        platform->setCursorPos(palette_x - 1, y);
+        std::string line(palette_w + 2, ' ');
+        platform->writeStr(line);
+    }
+
+    // draw border
+    platform->setCursorPos(palette_x - 1, palette_y - 1);
+    platform->writeStr("+" + std::string(palette_w, '-') + "+");
+
+    platform->setCursorPos(palette_x - 1, palette_y);
+    platform->writeStr("|");
+    platform->setCursorPos(palette_x + palette_w, palette_y);
+    platform->writeStr("|");
+
+    platform->setCursorPos(palette_x - 1, palette_y + 1);
+    platform->writeStr("+" + std::string(palette_w, '-') + "+");
+
+    // draw cmd prompt
+    platform->setCursorPos(palette_x, palette_y);
+    std::string prompt = "> " + cmd_buffer;
+    if (prompt.length() > static_cast<size_t>(palette_w))
+        prompt = prompt.substr(prompt.length() - palette_w);
+
+    platform->writeStr(prompt);
+
+    // poisition cursor at the end of the cmd
+    platform->setCursorPos(palette_x + 1 + cmd_buffer.length(), palette_y);
+}
