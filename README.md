@@ -4,7 +4,7 @@
 
 This project is inspired by kilo and vim.
 
-It is a cross-platform, light weight text editor written in C++
+It is a cross-platform (well, not now, but it will be), light weight text editor written in C++
 
 ## Usage
 

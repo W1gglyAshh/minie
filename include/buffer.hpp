@@ -6,10 +6,10 @@
 
 class TextBuffer
 {
-private:
+  private:
     std::vector<std::string> lines;
 
-public:
+  public:
     TextBuffer();
 
     // file loading
@@ -27,6 +27,6 @@ public:
     void joinLines(int row);
 
     size_t getLineCount() const;
-    const std::string getLine(int row) const;
+    const std::string &getLine(int row) const;
     size_t getLineLength(int row) const;
 };
