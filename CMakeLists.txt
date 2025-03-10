@@ -16,8 +16,7 @@ project(minie)
 
 file(GLOB SRC
 	"src/*.cpp"
-	"include/*.hpp"
 )
 add_executable(minie ${SRC})
 
-target_include_directories(minie PRIVATE "include")
+target_include_directories(minie PUBLIC "include")

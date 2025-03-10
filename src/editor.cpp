@@ -4,8 +4,8 @@
 #include <sstream>
 
 Editor::Editor()
-    : platform(nullptr), cursor_x(0), cursor_y(0), x_offset(0), y_offset(0),
-      screen_w(0), screen_h(0), is_modified(false), mode(EditorMode::NORMAL)
+    : cursor_x(0), cursor_y(0), x_offset(0), y_offset(0), screen_w(0),
+      screen_h(0), is_modified(false), mode(EditorMode::NORMAL)
 {
 }
 
@@ -26,6 +26,8 @@ bool Editor::init()
 
     platform->getScreenSize(screen_w, screen_h);
     platform->enableRawMode();
+
+    buffer = std::make_unique<TextBuffer>();
     return true;
 }
 
@@ -44,36 +46,32 @@ void Editor::run()
             {
                 toggleCmdPalette();
             }
+            else if (mode == EditorMode::COMMAND)
+            {
+                if (event.code == KeyCode::ENTER)
+                {
+                    execCmd(cmd_buffer);
+                    if (cmd_buffer == "q" || cmd_buffer == "q!" ||
+                        cmd_buffer == "wq")
+                        running = false;
+
+                    mode = EditorMode::NORMAL;
+                    cmd_buffer.clear();
+                }
+                else if (event.code == KeyCode::BACKSPACE &&
+                         !cmd_buffer.empty())
+                {
+                    cmd_buffer.pop_back();
+                }
+                else if (event.code == KeyCode::CHAR)
+                {
+                    cmd_buffer += event.ch;
+                }
+            }
             else
             {
-                mode = EditorMode::NORMAL;
-                cmd_buffer.clear();
+                processKeyEvent(event);
             }
-        }
-        else if (mode == EditorMode::COMMAND)
-        {
-            if (event.code == KeyCode::ENTER)
-            {
-                execCmd(cmd_buffer);
-                if (cmd_buffer == "q" || cmd_buffer == "q!" ||
-                    cmd_buffer == "wq")
-                    running = false;
-
-                mode = EditorMode::NORMAL;
-                cmd_buffer.clear();
-            }
-            else if (event.code == KeyCode::BACKSPACE && !cmd_buffer.empty())
-            {
-                cmd_buffer.pop_back();
-            }
-            else if (event.code == KeyCode::CHAR)
-            {
-                cmd_buffer += event.ch;
-            }
-        }
-        else
-        {
-            processKeyEvent(event);
         }
     }
 
@@ -144,7 +142,8 @@ void Editor::updateScreen()
                 display_line = line.substr(x_offset, screen_w);
 
             // also display line number
-            platform->writeStr("   " + std::to_string(y) + "| " + display_line);
+            platform->writeStr(
+                /*"   " + std::to_string(y) + "| " + */ display_line);
         }
         else
         {
@@ -157,7 +156,7 @@ void Editor::updateScreen()
     std::stringstream status;
     status << (current_filename.empty() ? "[NEW FILE]" : current_filename)
            << (is_modified ? "[+]" : "") << " - " << buffer->getLineCount()
-           << " L";
+           << " Ln";
 
     if (!status_msg.empty())
     {
@@ -180,7 +179,7 @@ void Editor::updateScreen()
     if (mode == EditorMode::COMMAND)
         renderCmdPalette();
     else
-        platform->setCursorPos(cursor_x = x_offset, cursor_y - y_offset);
+        platform->setCursorPos(cursor_x - x_offset, cursor_y - y_offset);
 
     platform->refreshScreen();
 }
@@ -188,40 +187,71 @@ void Editor::updateScreen()
 void Editor::renderCmdPalette()
 {
     // calc cmd palette position
-    int palette_w = std::min(40, screen_w - 4);
+    int palette_w = std::min(40, screen_w - 6);
+    int palette_h = 3;
+
+    // center the palette
     int palette_x = (screen_w - palette_w) / 2;
-    int palette_y = 2;
+    int palette_y = (screen_h - palette_h) / 2;
+
+    // unicode characters
+    const char *top_left = "╭";
+    const char *top_right = "╮";
+    const char *bottom_left = "╰";
+    const char *bottom_right = "╯";
+    const char *horizontal = "─";
+    const char *vertical = "│";
 
     // draw background
-    for (int y = palette_y; y < palette_y + 3; ++y)
+    for (int y = palette_y; y < palette_y + palette_h; ++y)
     {
         platform->setCursorPos(palette_x - 1, y);
-        std::string line(palette_w + 2, ' ');
-        platform->writeStr(line);
+        std::string bg_line(palette_w + 2, ' ');
+        platform->writeStr(bg_line);
     }
 
-    // draw border
+    // top border
     platform->setCursorPos(palette_x - 1, palette_y - 1);
-    platform->writeStr("+" + std::string(palette_w, '-') + "+");
+    platform->writeStr(top_left + std::string(palette_w, *horizontal) +
+                       top_right);
 
-    platform->setCursorPos(palette_x - 1, palette_y);
-    platform->writeStr("|");
-    platform->setCursorPos(palette_x + palette_w, palette_y);
-    platform->writeStr("|");
+    // side borders
+    for (int y = palette_y; y < palette_y + palette_h; ++y)
+    {
+        platform->setCursorPos(palette_x, y);
+        platform->writeStr(vertical);
+        platform->setCursorPos(palette_x + palette_w, y);
+        platform->writeStr(vertical);
+    }
 
-    platform->setCursorPos(palette_x - 1, palette_y + 1);
-    platform->writeStr("+" + std::string(palette_w, '-') + "+");
+    // bottom border
+    platform->setCursorPos(palette_x - 1, palette_y + palette_h);
+    platform->writeStr(bottom_left + std::string(palette_w, *horizontal) +
+                       bottom_right);
 
-    // draw cmd prompt
-    platform->setCursorPos(palette_x, palette_y);
+    // title
+    platform->setCursorPos(palette_x, palette_y - 1);
+    std::string title = " Command ";
+    int title_pos = (palette_w - title.length()) / 2;
+    if (title_pos > 0)
+    {
+        platform->setCursorPos(palette_x + title_pos, palette_y - 1);
+        platform->writeStr(title);
+    }
+
+    // draw cmd prompt (enhanced visual style)
+    platform->setCursorPos(palette_x + 1, palette_y + 1);
     std::string prompt = "> " + cmd_buffer;
-    if (prompt.length() > static_cast<size_t>(palette_w))
-        prompt = prompt.substr(prompt.length() - palette_w);
+
+    if (prompt.length() > static_cast<size_t>(palette_w - 2))
+        prompt = prompt.substr(prompt.length() - (palette_w - 2));
+    else
+        prompt = prompt.substr(palette_w - 2 - prompt.length(), ' ');
 
     platform->writeStr(prompt);
 
     // poisition cursor at the end of the cmd
-    platform->setCursorPos(palette_x + 1 + cmd_buffer.length(), palette_y);
+    platform->setCursorPos(palette_x + 2 + cmd_buffer.length(), palette_y);
 }
 
 void Editor::processKeyEvent(const KeyEvent &event)
@@ -277,5 +307,108 @@ void Editor::processKeyEvent(const KeyEvent &event)
             buffer->joinLines(cursor_y);
             is_modified = true;
         }
+    }
+    else if (event.code == KeyCode::LEFT)
+    {
+        moveCursor(-1, 0);
+    }
+    else if (event.code == KeyCode::RIGHT)
+    {
+        moveCursor(1, 0);
+    }
+    else if (event.code == KeyCode::UP)
+    {
+        moveCursor(0, -1);
+    }
+    else if (event.code == KeyCode::DOWN)
+    {
+        moveCursor(0, 1);
+    }
+    else if (event.code == KeyCode::HOME)
+    {
+        cursor_x = 0;
+    }
+    else if (event.code == KeyCode::END)
+    {
+        cursor_x = buffer->getLineLength(cursor_y);
+    }
+
+    scrollToFit();
+}
+
+void Editor::moveCursor(int dx, int dy)
+{
+    cursor_x += dx;
+    cursor_y += dy;
+
+    // ensure cursor is not not in invalid position
+    if (cursor_y < 0)
+        cursor_y = 0;
+    else if (cursor_y >= static_cast<int>(buffer->getLineCount()))
+        cursor_y = buffer->getLineCount() - 1;
+
+    if (cursor_x < 0)
+    {
+        cursor_x = 0;
+    }
+    else
+    {
+        int max_x = buffer->getLineLength(cursor_y);
+        if (cursor_x > max_x)
+            cursor_x = max_x;
+    }
+}
+
+void Editor::scrollToFit()
+{
+    // horizontal
+    if (cursor_x < x_offset)
+        x_offset = cursor_x;
+    else if (cursor_x >= x_offset + screen_w)
+        x_offset = cursor_x - screen_w + 1;
+
+    // vertical
+    if (cursor_y < y_offset)
+        y_offset = cursor_y;
+    else if (cursor_y >= y_offset + screen_h - 1)
+        y_offset = cursor_y - screen_h + 2;
+}
+
+void Editor::toggleCmdPalette()
+{
+    mode = EditorMode::COMMAND;
+    cmd_buffer.clear();
+}
+
+void Editor::execCmd(const std::string &cmd)
+{
+    if (cmd == "w")
+    {
+        saveFile();
+    }
+    else if (cmd.substr(0, 2) == "w ")
+    {
+        std::string fname = cmd.substr(2);
+        saveFile(fname);
+    }
+    else if (cmd == "q")
+    {
+        if (is_modified)
+        {
+            status_msg =
+                "ERROR: NO WRITE SINCE LAST CHANGE (ADD ! TO OVERRIDE).";
+        }
+    }
+    else if (cmd == "q!")
+    {
+        // handled in run method
+    }
+    else if (cmd == "wq")
+    {
+        saveFile();
+    }
+    else
+    {
+        status_msg = "ERROR: UNKNOWN COMMAND: " + cmd;
     }
 }
