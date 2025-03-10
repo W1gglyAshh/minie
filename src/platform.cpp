@@ -16,7 +16,7 @@ std::unique_ptr<Platform> Platform::createPl()
     return std::make_unique<WinPl>();
 #elif defined(__APPLE__) || defined(__unix__)
     return std::make_unique<UnixPl>();
-#else;
+#else
 #error "Unsupported platform!"
     return nullptr;
 #endif

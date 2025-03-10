@@ -42,5 +42,5 @@ class Editor
     bool init();
     void run();
     bool oFile(const std::string &fn);
-    bool sFile(const std::string fn = "");
+    bool sFile(const std::string &fn = "");
 };
