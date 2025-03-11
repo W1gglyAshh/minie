@@ -7,12 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### added
+### Added
 
 - Display the total byte count in the status line.
+- Display suggestions below the command palette.
+- Display line number
 
 ## [0.0.1] - 2025-3-10
 
-### added
+### Added
 
 - Initial release of the MINIE Editor.

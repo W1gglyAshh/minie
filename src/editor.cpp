@@ -134,6 +134,9 @@ void Editor::updateScreen()
 {
     pl->clrScreen();
 
+    // byte count
+    int bc;
+
     // display buffer
     for (int y = 0; y < sh - 1; ++y)
     {
@@ -155,12 +158,18 @@ void Editor::updateScreen()
             pl->writeStr("~");
         }
     }
+    // calculate the byte size of the file
+    bc = 0;
+    for (int n = 0; n < static_cast<int>(tb.getLCount()); n++)
+    {
+        bc += tb.getLLength(n);
+    }
 
     // display status line
     pl->setCPos(0, sh - 1);
     std::stringstream ss;
     ss << (current_fn.empty() ? "[NEW FILE]" : current_fn) << (mo ? "[+]" : "")
-       << " - " << cy + 1 << " Ln " << cx + 1 << " Col";
+       << " - " << cy + 1 << " Ln " << cx + 1 << " Col, " << bc << " B";
 
     if (!sm.empty())
         ss << " | " << sm;
@@ -344,7 +353,10 @@ void Editor::execCmd(const std::string &cmd)
     else if (cmd == "q")
     {
         if (mo)
+        {
             sm = "NO WRITE SINCE LAST CHANGE (ADD ! TO OVERRIDE)";
+            return;
+        }
     }
     else if (cmd == "q!")
     {
