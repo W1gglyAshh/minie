@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Display the total byte count in the status line.
 - Display suggestions below the command palette.
 - Display line number.
+- Use alternate screen buffer rather than regular screen.
 
 ### Fixed
 

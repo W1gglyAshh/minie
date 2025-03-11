@@ -10,12 +10,13 @@
 #include <termios.h>
 #include <unistd.h>
 
-UnixPl::UnixPl() : raw(false), mouse(false) { memset(&orig, 0, sizeof(orig)); }
+UnixPl::UnixPl() : raw(false), mouse(false), asb(false) { memset(&orig, 0, sizeof(orig)); }
 
 UnixPl::~UnixPl()
 {
     disableRawM();
     disableMouse();
+    disableASB();
 }
 
 bool UnixPl::init() { return true; }
@@ -24,6 +25,7 @@ void UnixPl::shutdown()
 {
     disableRawM();
     disableMouse();
+    disableASB();
 }
 
 void UnixPl::getScreenSize(int &width, int &height)
@@ -91,6 +93,7 @@ bool UnixPl::pollKEvent(KEVENT &e)
                                 return true;
                             }
                         }
+                        return false;
                     }
                     else if (seq[1] == '<')
                     {
@@ -123,6 +126,7 @@ bool UnixPl::pollKEvent(KEVENT &e)
                             e.k = KEY::MOUSEDOWN;
                             return true;
                         }
+                        return false;
                     }
                 }
                 else
@@ -246,6 +250,23 @@ void UnixPl::disableMouse()
     printf("\033[?1006l");
     printf("\033[?1007l");
     mouse = false;
+}
+
+void UnixPl::enableASB()
+{
+    // alternate screen buffer
+    if (asb) return;
+
+    printf("\033[?1049h");
+    asb = true;
+}
+
+void UnixPl::disableASB()
+{
+    if (!asb) return;
+
+    printf("\033[?1049l");
+    asb = false;
 }
 
 #endif

@@ -50,5 +50,8 @@ class Platform
     virtual void enableMouse() = 0;
     virtual void disableMouse() = 0;
 
+    virtual void enableASB() = 0;
+    virtual void disableASB() = 0;
+
     static std::unique_ptr<Platform> createPl();
 };

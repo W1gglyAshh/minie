@@ -12,6 +12,7 @@ class UnixPl : public Platform
     struct termios orig;
     bool raw;
     bool mouse;
+    bool asb;
 
   public:
     UnixPl();
@@ -33,6 +34,9 @@ class UnixPl : public Platform
 
     void enableMouse() override;
     void disableMouse() override;
+
+    void enableASB() override;
+    void disableASB() override;
 };
 
 #endif

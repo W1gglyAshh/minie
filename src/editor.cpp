@@ -14,6 +14,8 @@ Editor::~Editor()
     if (pl)
     {
         pl->disableRawM();
+        pl->disableMouse();
+        pl->disableASB();
         pl->shutdown();
     }
 }
@@ -26,6 +28,8 @@ bool Editor::init()
 
     pl->getScreenSize(sw, sh);
     pl->enableRawM();
+    pl->enableMouse();
+    pl->enableASB();
     return true;
 }
 
@@ -131,6 +135,7 @@ bool Editor::sFile(const std::string &fn)
 void Editor::updateScreen()
 {
     pl->clrScreen();
+    pl->getScreenSize(sw, sh);
 
     // byte count
     int bc;
@@ -281,6 +286,18 @@ void Editor::processKE(const KEVENT &e)
     else if (e.k == KEY::DOWN)
     {
         mvCursor(0, 1);
+    }
+    else if (e.k == KEY::MOUSEUP)
+    {
+        if (oy > 0)
+            oy--;
+        return;
+    }
+    else if (e.k == KEY::MOUSEDOWN)
+    {
+        if (oy < tb.getLCount() - (sh - 1))
+            oy++;
+        return;
     }
 
     scrollTFit();
