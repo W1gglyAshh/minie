@@ -13,11 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Display suggestions below the command palette.
 - Display line number.
 - Use alternate screen buffer rather than regular screen.
+- Display status bar in white background.
+- Support mouse scrolling.
+- Enhance the visual experience of command palette.
 
 ### Fixed
 
 - Fixed editor not warning when trying to quit('q') with unsaved changes.
-- Fixed infinite scrolling with mouse in the terminal and added support to mouse scrolling for navigating through the file.
 
 ## [0.0.1] - 2025-3-10
 

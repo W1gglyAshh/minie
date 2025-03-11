@@ -1,4 +1,3 @@
-#include "platform.hpp"
 #if defined(__APPLE__) || defined(__unix__)
 
 #include "platform_unix.hpp"
@@ -194,7 +193,7 @@ void UnixPl::writeStr(const std::string &str)
     write(STDOUT_FILENO, str.c_str(), str.length());
 }
 
-// no refresh neede on unix terminals
+// no refresh needed on unix terminals
 void UnixPl::refreshScreen() {}
 
 void UnixPl::enableRawM()
@@ -255,17 +254,21 @@ void UnixPl::disableMouse()
 void UnixPl::enableASB()
 {
     // alternate screen buffer
-    if (asb) return;
+    if (asb)
+        return;
 
     printf("\033[?1049h");
+    fflush(stdout);
     asb = true;
 }
 
 void UnixPl::disableASB()
 {
-    if (!asb) return;
+    if (!asb)
+        return;
 
     printf("\033[?1049l");
+    fflush(stdout);
     asb = false;
 }
 

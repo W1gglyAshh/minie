@@ -1,7 +1,9 @@
 #include "editor.hpp"
 
 #include <algorithm>
+#include <cstdio>
 #include <sstream>
+#include <string>
 
 Editor::Editor()
     : pl(nullptr), cx(0), cy(0), ox(0), oy(0), sw(0), sh(0), mo(false),
@@ -91,7 +93,7 @@ bool Editor::oFile(const std::string &fn)
     if (tb.loadFFile(fn))
     {
         current_fn = fn;
-        cx = 0;
+        cx = tb.getLLength(0);
         cy = 0;
         ox = 0;
         oy = 0;
@@ -183,7 +185,12 @@ void Editor::updateScreen()
     else
         ssl.append(sw - ssl.length(), ' ');
 
+    // set alternate background and foreground color
+    printf("\x1b[47;30m");
+    fflush(stdout);
     pl->writeStr(ssl);
+    printf("\x1b[0m");
+    fflush(stdout);
 
     if (mode == EMode::CMD)
         renderCmdP();
@@ -200,6 +207,18 @@ void Editor::renderCmdP()
     int px = (sw - pw) / 2;
     int py = 2;
 
+    std::string cpt = " COMMAND PALETTE ";
+    std::string bs = "─";
+    std::string ubsr;
+    std::string ubsl;
+    std::string bbs;
+
+    int pus = (pw / 2.0f) - (cpt.length() / 2.0f);
+
+    for (int i = 0; i < pus; i++) ubsr += bs;
+    ubsl = ubsr + "─";
+    for (int i = 0; i < pw; i++) bbs += bs;
+
     // draw background
     for (int y = py; y < py + 3; ++y)
     {
@@ -210,15 +229,15 @@ void Editor::renderCmdP()
 
     // border
     pl->setCPos(px - 1, py - 1);
-    pl->writeStr("+" + std::string(pw, '-') + "+");
+    pl->writeStr("╭" + ubsl + cpt + ubsr + "╮");
 
     pl->setCPos(px - 1, py);
-    pl->writeStr("|");
+    pl->writeStr("│");
     pl->setCPos(px + pw, py);
-    pl->writeStr("|");
+    pl->writeStr("│");
 
     pl->setCPos(px - 1, py + 1);
-    pl->writeStr("+" + std::string(pw, '-') + "+");
+    pl->writeStr("╰" + bbs + "╯");
 
     // command prompt
     pl->setCPos(px, py);
@@ -290,13 +309,19 @@ void Editor::processKE(const KEVENT &e)
     else if (e.k == KEY::MOUSEUP)
     {
         if (oy > 0)
+        {
             oy--;
+        }
         return;
     }
     else if (e.k == KEY::MOUSEDOWN)
     {
         if (oy < tb.getLCount() - (sh - 1))
+        {
             oy++;
+            if (cy <= 0)
+                cy = 0;
+        }
         return;
     }
 
