@@ -14,7 +14,9 @@ enum class KEY
     UP,
     DOWN,
     TAB,
-    ESC
+    ESC,
+    MOUSEUP,
+    MOUSEDOWN
 };
 
 struct KEVENT
@@ -44,6 +46,9 @@ class Platform
 
     virtual void enableRawM() = 0;
     virtual void disableRawM() = 0;
+
+    virtual void enableMouse() = 0;
+    virtual void disableMouse() = 0;
 
     static std::unique_ptr<Platform> createPl();
 };

@@ -11,6 +11,7 @@ class UnixPl : public Platform
   private:
     struct termios orig;
     bool raw;
+    bool mouse;
 
   public:
     UnixPl();
@@ -29,6 +30,9 @@ class UnixPl : public Platform
 
     void enableRawM() override;
     void disableRawM() override;
+
+    void enableMouse() override;
+    void disableMouse() override;
 };
 
 #endif

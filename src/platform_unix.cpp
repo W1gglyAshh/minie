@@ -1,22 +1,30 @@
+#include "platform.hpp"
 #if defined(__APPLE__) || defined(__unix__)
 
 #include "platform_unix.hpp"
 
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
 
-UnixPl::UnixPl() : raw(false) { memset(&orig, 0, sizeof(orig)); }
+UnixPl::UnixPl() : raw(false), mouse(false) { memset(&orig, 0, sizeof(orig)); }
 
-UnixPl::~UnixPl() { disableRawM(); }
+UnixPl::~UnixPl()
+{
+    disableRawM();
+    disableMouse();
+}
 
 bool UnixPl::init() { return true; }
 
-void UnixPl::shutdown() { disableRawM(); }
+void UnixPl::shutdown()
+{
+    disableRawM();
+    disableMouse();
+}
 
 void UnixPl::getScreenSize(int &width, int &height)
 {
@@ -43,14 +51,9 @@ bool UnixPl::pollKEvent(KEVENT &e)
 
         if (ch == 27)
         {
-            char seq[3];
+            char seq[16];
 
             if (read(STDIN_FILENO, &seq[0], 1) != 1)
-            {
-                e.k = KEY::ESC;
-                return true;
-            }
-            if (read(STDIN_FILENO, &seq[1], 1) != 1)
             {
                 e.k = KEY::ESC;
                 return true;
@@ -58,20 +61,87 @@ bool UnixPl::pollKEvent(KEVENT &e)
 
             if (seq[0] == '[')
             {
-                switch (seq[1])
+                if (read(STDIN_FILENO, &seq[1], 1) != 1)
                 {
-                case 'A':
-                    e.k = KEY::UP;
-                    break;
-                case 'B':
-                    e.k = KEY::DOWN;
-                    break;
-                case 'C':
-                    e.k = KEY::RIGHT;
-                    break;
-                case 'D':
-                    e.k = KEY::LEFT;
-                    break;
+                    e.k = KEY::ESC;
+                    return true;
+                }
+
+                // handle mouse
+                if (seq[1] == 'M' || seq[1] == '<')
+                {
+                    // old style
+                    if (seq[1] == 'M')
+                    {
+                        char mi[3];
+                        if (read(STDIN_FILENO, mi, 3) != 3)
+                            return false;
+
+                        int bk = mi[0] - 32;
+                        if ((bk & 0x40) != 0)
+                        {
+                            if ((bk & 0x1) != 0)
+                            {
+                                e.k = KEY::MOUSEUP;
+                                return true;
+                            }
+                            else
+                            {
+                                e.k = KEY::MOUSEDOWN;
+                                return true;
+                            }
+                        }
+                    }
+                    else if (seq[1] == '<')
+                    {
+                        // new style
+                        char mi[32];
+                        int idx = 0;
+
+                        while (idx < 31)
+                        {
+                            if (read(STDIN_FILENO, &mi[idx], 1) != 1)
+                                return false;
+
+                            if (mi[idx] == 'm' || mi[idx] == 'M')
+                                break;
+
+                            idx++;
+                        }
+                        mi[idx + 1] = '\0';
+
+                        int bk;
+                        sscanf(mi, "%d", &bk);
+
+                        if (bk == 64 || bk == 65)
+                        {
+                            e.k = KEY::MOUSEUP;
+                            return true;
+                        }
+                        else if (bk == 66 || bk == 67)
+                        {
+                            e.k = KEY::MOUSEDOWN;
+                            return true;
+                        }
+                    }
+                }
+                else
+                {
+                    switch (seq[1])
+                    {
+                    case 'A':
+                        e.k = KEY::UP;
+                        break;
+                    case 'B':
+                        e.k = KEY::DOWN;
+                        break;
+                    case 'C':
+                        e.k = KEY::RIGHT;
+                        break;
+                    case 'D':
+                        e.k = KEY::LEFT;
+                        break;
+                    }
                 }
             }
         }
@@ -152,6 +222,30 @@ void UnixPl::disableRawM()
 
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig);
     raw = false;
+}
+
+void UnixPl::enableMouse()
+{
+    if (mouse)
+        return;
+
+    printf("\033[?1000h");
+    printf("\033[?1002h");
+    printf("\033[?1006h");
+    printf("\033[?1007h");
+    mouse = true;
+}
+
+void UnixPl::disableMouse()
+{
+    if (!mouse)
+        return;
+
+    printf("\033[?1000l");
+    printf("\033[?1002l");
+    printf("\033[?1006l");
+    printf("\033[?1007l");
+    mouse = false;
 }
 
 #endif
