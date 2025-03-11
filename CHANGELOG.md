@@ -11,7 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Display the total byte count in the status line.
 - Display suggestions below the command palette.
-- Display line number
+- Display line number.
+
+### Fixed
+
+- Fixed editor not warning when trying to quit('q') with unsaved changes.
+- Fixed infinite scrolling with mouse in the terminal and added support to mouse scrolling for navigating through the file.
 
 ## [0.0.1] - 2025-3-10
 

@@ -56,9 +56,7 @@ void Editor::run()
             {
                 if (ev.k == KEY::ENTER)
                 {
-                    execCmd(cbf);
-                    if (cbf == "q" || cbf == "q!" || cbf == "wq")
-                        r = false;
+                    r = execCmd(cbf);
                     mode = EMode::NOR;
                     cbf.clear();
                 }
@@ -339,7 +337,7 @@ void Editor::toggleCmdP()
     cbf.clear();
 }
 
-void Editor::execCmd(const std::string &cmd)
+bool Editor::execCmd(const std::string &cmd)
 {
     if (cmd == "w")
     {
@@ -355,19 +353,22 @@ void Editor::execCmd(const std::string &cmd)
         if (mo)
         {
             sm = "NO WRITE SINCE LAST CHANGE (ADD ! TO OVERRIDE)";
-            return;
+            return true;
         }
+        return false;
     }
     else if (cmd == "q!")
     {
-        // handled in run
+        return false;
     }
     else if (cmd == "wq")
     {
         sFile();
+        return false;
     }
     else
     {
         sm = "ERROR: UNKNOWN COMMAND: " + cmd;
     }
+    return true;
 }

@@ -31,7 +31,7 @@ class Editor
     void processKE(const KEVENT &e);
     void mvCursor(int dx, int dy);
     void scrollTFit();
-    void execCmd(const std::string &cmd);
+    bool execCmd(const std::string &cmd);
     void toggleCmdP();
     void renderCmdP();
 
