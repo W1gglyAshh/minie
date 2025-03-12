@@ -213,6 +213,8 @@ void Editor::updateScreen()
         ssl.append(sw - ssl.length(), ' ');
 
     // set alternate background and foreground color
+    pl->writeStr("\x1b[107;30m" + std::string(sw, ' ') + "\x1b[0m");
+    pl->setCPos(0, sh - 1);
     pl->writeStr("\x1b[107;30m" + ssl + "\x1b[0m");
 
     if (mode == EMode::CMD)
