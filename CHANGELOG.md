@@ -10,12 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Display the total byte count in the status line.
-- Display suggestions below the command palette.
 - Display line number.
 - Use alternate screen buffer rather than regular screen.
 - Display status bar in white background.
-- Support mouse scrolling.
 - Enhance the visual experience of command palette.
+- Support line wrapping to avoid exceeding screen width.
+- Use printf() instead of write() in Editor::writeStr().
 
 ### Fixed
 

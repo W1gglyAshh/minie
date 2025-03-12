@@ -141,31 +141,56 @@ void Editor::updateScreen()
     pl->getScreenSize(sw, sh);
 
     // byte count
-    int bc;
+    int bc = 0;
+
+    // for line wrapping
+    int avw = sw - 8;
+    int ddl = 0;
 
     // display buffer
-    for (int y = 0; y < sh - 1; ++y)
+    for (int fli = oy; fli < static_cast<int>(tb.getLCount()) && ddl < sh - 1;
+         ++fli)
     {
-        int fy = y + oy;
-        pl->setCPos(0, y);
+        const std::string &cul = tb.getL(fli);
+        int ll = cul.length();
 
-        if (fy < static_cast<int>(tb.getLCount()))
-        {
-            const std::string &l = tb.getL(fy);
-            std::string dl;
-
-            if (ox < static_cast<int>(l.length()))
-                dl = l.substr(ox, sw - 8);
-
-            pl->writeStr("\x1b[90m" + calcLn(fy + 1) + "\x1b[0m" + dl);
-        }
+        int nwl = 1;
+        if (ll > ox)
+            nwl = (ll - ox + avw - 1) / avw;
         else
+            nwl = 1;
+
+        for (int wsg = 0; wsg < nwl && ddl < sh - 1; ++wsg)
         {
-            pl->writeStr("\x1b[90;2m~\x1b[0m");
+            pl->setCPos(0, ddl);
+
+            if (wsg == 0)
+                pl->writeStr("\x1b[90m" + calcLn(fli + 1) + "\x1b[0m");
+            else
+                pl->writeStr("     ");
+
+            int sp = ox + (wsg * avw);
+
+            std::string dsg = "";
+            if (sp < ll)
+            {
+                int sgl = std::min(avw, ll - sp);
+                dsg = cul.substr(sp, sgl);
+            }
+
+            pl->writeStr(dsg);
+            ddl++;
         }
     }
+
+    while (ddl < sh - 1)
+    {
+        pl->setCPos(0, ddl);
+        pl->writeStr("\x1b[2m~\x1b[0m");
+        ddl++;
+    }
+
     // calculate the byte size of the file
-    bc = 0;
     for (int n = 0; n < static_cast<int>(tb.getLCount()); n++)
     {
         bc += tb.getLLength(n);
@@ -191,9 +216,44 @@ void Editor::updateScreen()
     pl->writeStr("\x1b[107;30m" + ssl + "\x1b[0m");
 
     if (mode == EMode::CMD)
+    {
         renderCmdP();
+    }
     else
-        pl->setCPos(cx - ox, cy - oy);
+    {
+        int cfx = cx - 8;
+        int cfy = cy;
+        int avw = sw - 8;
+
+        int sy = 0;
+        for (int i = oy; i < cfy; i++)
+        {
+            int ll = tb.getLLength(i);
+            if (ll <= ox)
+            {
+                sy += 1;
+            }
+            else
+            {
+                int vsl = ll - ox;
+                sy += (vsl + avw - 1) / avw;
+            }
+        }
+
+        int clo = cfx - ox;
+        if (clo >= 0)
+        {
+            sy += clo / avw;
+            int sx = clo % avw;
+
+            if (clo < avw)
+                sx += 8;
+            else
+                sx += 5;
+
+            pl->setCPos(sx, sy);
+        }
+    }
 
     pl->refreshScreen();
 }
@@ -292,19 +352,42 @@ void Editor::processKE(const KEVENT &e)
     }
     else if (e.k == KEY::LEFT)
     {
-        mvCursor(-1, 0);
+        if (cx > 8)
+        {
+            mvCursor(-1, 0);
+        }
+        else if (cy > 0 && cx <= 8)
+        {
+            cy--;
+            cx = tb.getLLength(cy) + 8;
+            scrollTFit();
+        }
     }
     else if (e.k == KEY::RIGHT)
     {
-        mvCursor(1, 0);
+        int mx = tb.getLLength(cy) + 8;
+        if (cx < mx)
+        {
+            mvCursor(1, 0);
+        }
+        else if (cy < tb.getLCount() - 1)
+        {
+            cy++;
+            cx = 8;
+            scrollTFit();
+        }
     }
     else if (e.k == KEY::UP)
     {
         mvCursor(0, -1);
+        if (cx < 8)
+            cx = 8;
     }
     else if (e.k == KEY::DOWN)
     {
         mvCursor(0, 1);
+        if (cx < 8)
+            cx = 8;
     }
     // mouse scroll function is temporarily removed due to an issue
 
@@ -313,23 +396,34 @@ void Editor::processKE(const KEVENT &e)
 
 void Editor::mvCursor(int dx, int dy)
 {
-    cx += dx;
-    cy += dy;
+    int avw = sw - 8;
+    int cfx = cx - 8;
 
-    if (cy < 0)
-        cy = 0;
-    else if (cy >= static_cast<int>(tb.getLCount()))
-        cy = tb.getLCount() - 1;
-
-    if (cx < 8)
+    if (dy != 0)
     {
-        cx = 8;
+        cy += dy;
+        cy = std::max(0, std::min(cy, static_cast<int>(tb.getLCount() - 1)));
+
+        int ll = tb.getLLength(cy);
+        if (cfx > ll)
+            cx = ll + 8;
     }
-    else
+
+    if (dx != 0)
     {
-        int mx = tb.getLLength(cy) + 8;
-        if (cx > mx)
-            cx = mx;
+        if (dx < 0 && cfx > 0)
+        {
+            cx += dx;
+        }
+        else if (dx > 0)
+        {
+            int mx = tb.getLLength(cy);
+            if (cfx < mx)
+                cx += dx;
+        }
+
+        if (cx < 8)
+            cx = 8;
     }
 
     scrollTFit();
@@ -337,25 +431,32 @@ void Editor::mvCursor(int dx, int dy)
 
 void Editor::scrollTFit()
 {
-    // horizontal scrolling
-    if (cx < ox)
+    int avw = sw - 8;
+
+    int cfx = cx - 8;
+    int csy = 0;
+
+    for (int i = 0; i < cy; i++)
     {
-        ox = cx;
-    }
-    else if (cx >= ox + sw)
-    {
-        ox = cx - sw + 1;
+        int ll = tb.getLLength(i);
+        int wls = std::max(1, (ll + avw - 1) / avw);
+        csy += wls;
     }
 
-    // vertical scrolling
-    if (cy < oy)
-    {
-        oy = cy;
-    }
-    else if (cy >= oy + sh - 1)
-    {
-        oy = cy - sh + 2;
-    }
+    csy += cfx / avw;
+
+    // horizontal
+    int wrx = cfx % avw;
+    if (wrx < ox)
+        ox = wrx;
+    else if (wrx >= ox + avw)
+        ox = wrx - avw + 1;
+
+    // vertical
+    if (csy < oy)
+        oy = csy;
+    else if (csy >= oy + sh - 1)
+        oy = csy - sh + 2;
 }
 
 void Editor::toggleCmdP()
@@ -379,7 +480,8 @@ bool Editor::execCmd(const std::string &cmd)
     {
         if (mo)
         {
-            sm = "NO WRITE SINCE LAST CHANGE (ADD ! TO OVERRIDE)";
+            sm = "\x1b[31mNO WRITE SINCE LAST CHANGE (ADD ! TO "
+                 "OVERRIDE)\x1b[30m";
             return true;
         }
         return false;
@@ -395,7 +497,7 @@ bool Editor::execCmd(const std::string &cmd)
     }
     else
     {
-        sm = "ERROR: UNKNOWN COMMAND: " + cmd;
+        sm = "\x1b[31mERROR: UNKNOWN COMMAND: " + cmd + "\x1b[30m";
     }
     return true;
 }
