@@ -101,6 +101,8 @@ void Editor::oFile(const std::string &fn)
             ox = 0;
             oy = 0;
             mo = false;
+
+            return;
         }
 
         // set current filename even if the file isn't loadable
@@ -469,13 +471,14 @@ void Editor::toggleCmdP()
 
 bool Editor::execCmd(const std::string &cmd)
 {
-    if (cmd == "w")
+    if (cmd == "w" || cmd == "s")
     {
         sFile();
     }
-    else if (cmd.substr(0, 2) == "w ")
+    else if (cmd.substr(0, 2) == "w " || cmd.substr(0, 2) == "s ")
     {
         std::string fn = cmd.substr(2);
+        std::erase(fn, ' ');
         sFile(fn);
     }
     else if (cmd == "q")
@@ -492,9 +495,16 @@ bool Editor::execCmd(const std::string &cmd)
     {
         return false;
     }
-    else if (cmd == "wq")
+    else if (cmd == "wq" || cmd == "sq")
     {
         sFile();
+        return false;
+    }
+    else if (cmd.substr(0, 3) == "wq " || cmd.substr(0, 3) == "sq ")
+    {
+        std::string fn = cmd.substr(3);
+        std::erase(fn, ' ');
+        sFile(fn);
         return false;
     }
     else
