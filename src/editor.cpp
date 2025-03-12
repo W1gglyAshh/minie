@@ -404,14 +404,11 @@ bool Editor::execCmd(const std::string &cmd)
             sm = "NO WRITE SINCE LAST CHANGE (ADD ! TO OVERRIDE)";
             return true;
         }
-        // not quitting the loop but quit the current buffer
-        // TODO
         return false;
     }
     else if (cmd == "q!")
     {
         return false;
-        // TODO
     }
     else if (cmd == "wq")
     {
@@ -424,13 +421,6 @@ bool Editor::execCmd(const std::string &cmd)
         cacheBuffer(current_id);
         current_id += 1;
         buffer_ids.push_back(current_id);
-
-        if (buffer_ids.size() > 1)
-            enableTab();
-    }
-    else if (cmd.empty())
-    {
-        return true;
     }
     else
     {
@@ -439,39 +429,4 @@ bool Editor::execCmd(const std::string &cmd)
     return true;
 }
 
-void Editor::cacheBuffer(int id)
-{
-    cached_cx[id] = cx;
-    cached_cy[id] = cy;
-    cached_ox[id] = ox;
-    cached_oy[id] = oy;
-    cached_fn[id] = current_fn;
-    cached_sm[id] = sm;
-    cached_mo[id] = mo;
-
-    cx = 0;
-    cy = 0;
-    ox = 0;
-    oy = 0;
-    current_fn.clear();
-    sm.clear();
-    mo = false;
-}
-
-void Editor::restoreBuffer(int id)
-{
-    auto it = std::find(buffer_ids.begin(), buffer_ids.end(), id);
-    if (it == buffer_ids.end())
-        return;
-
-    cacheBuffer(current_id);
-
-    current_id = id;
-    cx = cached_cx[id];
-    cy = cached_cy[id];
-    ox = cached_ox[id];
-    oy = cached_oy[id];
-    current_fn = cached_fn[id];
-    sm = cached_sm[id];
-    mo = cached_mo[id];
-}
+void Editor::cacheBuffer(int id) {}

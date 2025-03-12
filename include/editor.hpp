@@ -3,9 +3,7 @@
 #include "buffer.hpp"
 #include "platform.hpp"
 
-#include <map>
 #include <string>
-#include <vector>
 
 enum class EMode
 {
@@ -32,15 +30,13 @@ class Editor
     EMode mode;
     std::string cbf;
 
-    std::map<int, int> cached_cx;
-    std::map<int, int> cached_cy;
-    std::map<int, int> cached_ox;
-    std::map<int, int> cached_oy;
-    std::map<int, std::string> cached_sm;
-    std::map<int, std::string> cached_fn;
-    std::map<int, bool> cached_mo;
-
-    std::map<int, std::vector<std::string>> cached_buffers;
+    std::vector<int> cached_cx;
+    std::vector<int> cached_cy;
+    std::vector<int> cached_ox;
+    std::vector<int> cached_oy;
+    std::vector<std::string> cached_sm;
+    std::vector<std::string> chached_fn;
+    std::vector<bool> cached_mo;
 
     void updateScreen();
     void processKE(const KEVENT &e);
@@ -52,8 +48,6 @@ class Editor
 
     void cacheBuffer(int id);
     void restoreBuffer(int id);
-    void enableTab();
-    void disableTab();
 
   public:
     Editor();
