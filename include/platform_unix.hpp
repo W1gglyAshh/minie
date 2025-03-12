@@ -1,3 +1,5 @@
+#pragma once
+
 #if defined(__APPLE__) || defined(__unix__)
 
 #include "platform.hpp"
