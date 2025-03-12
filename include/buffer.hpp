@@ -11,6 +11,8 @@ class TBuffer
   public:
     TBuffer();
 
+    void clear();
+
     bool loadFFile(const std::string &fn);
     bool saveTFile(const std::string &fn);
 
