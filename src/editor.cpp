@@ -6,10 +6,9 @@
 #include <string>
 
 Editor::Editor()
-    : current_id(0), pl(nullptr), cx(0), cy(0), ox(0), oy(0), sw(0), sh(0),
-      mo(false), mode(EMode::NOR)
+    : pl(nullptr), cx(0), cy(0), ox(0), oy(0), sw(0), sh(0), mo(false),
+      mode(EMode::NOR)
 {
-    buffer_ids.clear();
 }
 
 Editor::~Editor()
@@ -89,29 +88,25 @@ void Editor::run()
     pl->refreshScreen();
 }
 
-void Editor::oFile(const std::string &fn)
+bool Editor::oFile(const std::string &fn)
 {
-    if (!fn.empty())
+    if (tb.loadFFile(fn))
     {
-        if (tb.loadFFile(fn))
-        {
-            current_fn = fn;
-            cx = tb.getLLength(0);
-            cy = 0;
-            ox = 0;
-            oy = 0;
-            mo = false;
-        }
-
-        // set current filename even if the file isn't loadable
-        // for creating new file
         current_fn = fn;
-        sm = "NEW FILE: " + fn;
+        cx = tb.getLLength(0);
+        cy = 0;
+        ox = 0;
+        oy = 0;
+        mo = false;
+
+        return true;
     }
 
-    // store the current buffer id
-    current_id += 1;
-    buffer_ids.push_back(current_id);
+    // set current filename even if the file isn't loadable
+    // for creating new file
+    current_fn = fn;
+    sm = "NEW FILE: " + fn;
+    return false;
 }
 
 bool Editor::sFile(const std::string &fn)
@@ -220,11 +215,9 @@ void Editor::renderCmdP()
 
     int pus = (pw / 2.0f) - (cpt.length() / 2.0f);
 
-    for (int i = 0; i < pus; i++)
-        ubsr += bs;
+    for (int i = 0; i < pus; i++) ubsr += bs;
     ubsl = ubsr + "─";
-    for (int i = 0; i < pw; i++)
-        bbs += bs;
+    for (int i = 0; i < pw; i++) bbs += bs;
 
     // draw background
     for (int y = py; y < py + 3; ++y)
@@ -415,18 +408,9 @@ bool Editor::execCmd(const std::string &cmd)
         sFile();
         return false;
     }
-    else if (cmd.substr(0, 2) == "o ")
-    {
-        std::string nfn = cmd.substr(2);
-        cacheBuffer(current_id);
-        current_id += 1;
-        buffer_ids.push_back(current_id);
-    }
     else
     {
         sm = "ERROR: UNKNOWN COMMAND: " + cmd;
     }
     return true;
 }
-
-void Editor::cacheBuffer(int id) {}
