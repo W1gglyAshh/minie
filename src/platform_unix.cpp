@@ -9,7 +9,10 @@
 #include <termios.h>
 #include <unistd.h>
 
-UnixPl::UnixPl() : raw(false), mouse(false), asb(false) { memset(&orig, 0, sizeof(orig)); }
+UnixPl::UnixPl() : raw(false), mouse(false), asb(false)
+{
+    memset(&orig, 0, sizeof(orig));
+}
 
 UnixPl::~UnixPl()
 {
@@ -190,7 +193,9 @@ void UnixPl::setCPos(int x, int y)
 
 void UnixPl::writeStr(const std::string &str)
 {
-    write(STDOUT_FILENO, str.c_str(), str.length());
+    // write(STDOUT_FILENO, str.c_str(), str.length());
+    printf("%s", str.c_str());
+    fflush(stdout);
 }
 
 // no refresh needed on unix terminals
@@ -235,7 +240,6 @@ void UnixPl::enableMouse()
     printf("\033[?1000h");
     printf("\033[?1002h");
     printf("\033[?1006h");
-    printf("\033[?1007h");
     mouse = true;
 }
 
@@ -247,7 +251,6 @@ void UnixPl::disableMouse()
     printf("\033[?1000l");
     printf("\033[?1002l");
     printf("\033[?1006l");
-    printf("\033[?1007l");
     mouse = false;
 }
 

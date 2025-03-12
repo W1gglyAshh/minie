@@ -27,6 +27,12 @@ class Editor
     EMode mode;
     std::string cbf;
 
+    // line number, from thousand to hundred to ten, to single digits
+    int lnk;
+    int lnh;
+    int lnt;
+    int lns;
+
     void updateScreen();
     void processKE(const KEVENT &e);
     void mvCursor(int dx, int dy);
@@ -35,12 +41,14 @@ class Editor
     void toggleCmdP();
     void renderCmdP();
 
+    std::string calcLn(int t);
+
   public:
     Editor();
     ~Editor();
 
     bool init();
     void run();
-    bool oFile(const std::string &fn);
+    void oFile(const std::string &fn = "");
     bool sFile(const std::string &fn = "");
 };

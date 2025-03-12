@@ -6,8 +6,8 @@
 #include <string>
 
 Editor::Editor()
-    : pl(nullptr), cx(0), cy(0), ox(0), oy(0), sw(0), sh(0), mo(false),
-      mode(EMode::NOR)
+    : pl(nullptr), cx(8), cy(0), ox(0), oy(0), sw(0), sh(0), mo(false),
+      mode(EMode::NOR), lnk(0), lnh(0), lns(1)
 {
 }
 
@@ -17,7 +17,7 @@ Editor::~Editor()
     {
         pl->disableRawM();
         pl->disableMouse();
-        pl->disableASB();
+        // pl->disableASB();
         pl->shutdown();
     }
 }
@@ -30,7 +30,7 @@ bool Editor::init()
 
     pl->getScreenSize(sw, sh);
     pl->enableRawM();
-    pl->enableMouse();
+    // pl->enableMouse();
     pl->enableASB();
     return true;
 }
@@ -88,25 +88,26 @@ void Editor::run()
     pl->refreshScreen();
 }
 
-bool Editor::oFile(const std::string &fn)
+void Editor::oFile(const std::string &fn)
 {
-    if (tb.loadFFile(fn))
+    if (!fn.empty())
     {
+        if (tb.loadFFile(fn))
+        {
+            current_fn = fn;
+            // due to line number
+            cx = tb.getLLength(0) + 8;
+            cy = 0;
+            ox = 0;
+            oy = 0;
+            mo = false;
+        }
+
+        // set current filename even if the file isn't loadable
+        // for creating new file
         current_fn = fn;
-        cx = tb.getLLength(0);
-        cy = 0;
-        ox = 0;
-        oy = 0;
-        mo = false;
-
-        return true;
+        sm = "NEW FILE: " + fn;
     }
-
-    // set current filename even if the file isn't loadable
-    // for creating new file
-    current_fn = fn;
-    sm = "NEW FILE: " + fn;
-    return false;
 }
 
 bool Editor::sFile(const std::string &fn)
@@ -154,13 +155,13 @@ void Editor::updateScreen()
             std::string dl;
 
             if (ox < static_cast<int>(l.length()))
-                dl = l.substr(ox, sw);
+                dl = l.substr(ox, sw - 8);
 
-            pl->writeStr(dl);
+            pl->writeStr("\x1b[90m" + calcLn(fy + 1) + "\x1b[0m" + dl);
         }
         else
         {
-            pl->writeStr("~");
+            pl->writeStr("\x1b[90;2m~\x1b[0m");
         }
     }
     // calculate the byte size of the file
@@ -173,8 +174,9 @@ void Editor::updateScreen()
     // display status line
     pl->setCPos(0, sh - 1);
     std::stringstream ss;
-    ss << (current_fn.empty() ? "[NEW FILE]" : current_fn) << (mo ? "[+]" : "")
-       << " - " << cy + 1 << " Ln " << cx + 1 << " Col, " << bc << " B";
+    ss << " " << (current_fn.empty() ? "[NEW FILE]" : current_fn)
+       << (mo ? "[+]" : "") << " - " << cy + 1 << " Ln " << cx + 1 << " Col, "
+       << bc << " B";
 
     if (!sm.empty())
         ss << " | " << sm;
@@ -186,11 +188,7 @@ void Editor::updateScreen()
         ssl.append(sw - ssl.length(), ' ');
 
     // set alternate background and foreground color
-    printf("\x1b[47;30m");
-    fflush(stdout);
-    pl->writeStr(ssl);
-    printf("\x1b[0m");
-    fflush(stdout);
+    pl->writeStr("\x1b[107;30m" + ssl + "\x1b[0m");
 
     if (mode == EMode::CMD)
         renderCmdP();
@@ -215,9 +213,11 @@ void Editor::renderCmdP()
 
     int pus = (pw / 2.0f) - (cpt.length() / 2.0f);
 
-    for (int i = 0; i < pus; i++) ubsr += bs;
+    for (int i = 0; i < pus; i++)
+        ubsr += bs;
     ubsl = ubsr + "─";
-    for (int i = 0; i < pw; i++) bbs += bs;
+    for (int i = 0; i < pw; i++)
+        bbs += bs;
 
     // draw background
     for (int y = py; y < py + 3; ++y)
@@ -254,14 +254,14 @@ void Editor::processKE(const KEVENT &e)
 {
     if (e.k == KEY::CHAR)
     {
-        tb.insCh(cy, cx, e.c);
+        tb.insCh(cy, cx - 8, e.c);
         cx++;
         mo = true;
     }
     else if (e.k == KEY::ENTER)
     {
-        tb.splitLine(cy, cx);
-        cx = 0;
+        tb.splitLine(cy, cx - 8);
+        cx = 8;
         cy++;
         mo = true;
     }
@@ -269,22 +269,22 @@ void Editor::processKE(const KEVENT &e)
     {
         for (int i = 0; i < 4; i++)
         {
-            tb.insCh(cy, cx, ' ');
+            tb.insCh(cy, cx - 8, ' ');
             cx++;
         }
         mo = true;
     }
     else if (e.k == KEY::BACKSPACE)
     {
-        if (cx > 0)
+        if (cx > 8)
         {
             cx--;
-            tb.delCh(cy, cx);
+            tb.delCh(cy, cx - 8);
             mo = true;
         }
         else if (cy > 0)
         {
-            cx = tb.getLLength(cy - 1);
+            cx = tb.getLLength(cy - 1) + 8;
             tb.joinLines(cy - 1);
             cy--;
             mo = true;
@@ -306,24 +306,7 @@ void Editor::processKE(const KEVENT &e)
     {
         mvCursor(0, 1);
     }
-    else if (e.k == KEY::MOUSEUP)
-    {
-        if (oy > 0)
-        {
-            oy--;
-        }
-        return;
-    }
-    else if (e.k == KEY::MOUSEDOWN)
-    {
-        if (oy < tb.getLCount() - (sh - 1))
-        {
-            oy++;
-            if (cy <= 0)
-                cy = 0;
-        }
-        return;
-    }
+    // mouse scroll function is temporarily removed due to an issue
 
     scrollTFit();
 }
@@ -338,16 +321,18 @@ void Editor::mvCursor(int dx, int dy)
     else if (cy >= static_cast<int>(tb.getLCount()))
         cy = tb.getLCount() - 1;
 
-    if (cx < 0)
+    if (cx < 8)
     {
-        cx = 0;
+        cx = 8;
     }
     else
     {
-        int mx = tb.getLLength(cy);
+        int mx = tb.getLLength(cy) + 8;
         if (cx > mx)
             cx = mx;
     }
+
+    scrollTFit();
 }
 
 void Editor::scrollTFit()
@@ -413,4 +398,20 @@ bool Editor::execCmd(const std::string &cmd)
         sm = "ERROR: UNKNOWN COMMAND: " + cmd;
     }
     return true;
+}
+
+std::string Editor::calcLn(int t)
+{
+    if (t < 10)
+        return "    " + std::to_string(t) + " │ ";
+    else if (t < 100 && t >= 10)
+        return "   " + std::to_string(t) + " │ ";
+    else if (t < 1000 && t >= 100)
+        return "  " + std::to_string(t) + " │ ";
+    else if (t < 10000 && t >= 1000)
+        return " " + std::to_string(t) + " │ ";
+    else
+        return std::to_string(t) + " │ ";
+    // I don’t accept files larger than 10k lines because only a stupid ass
+    // would write something like that
 }
