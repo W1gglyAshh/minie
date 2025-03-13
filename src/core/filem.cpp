@@ -10,7 +10,7 @@ void Editor::oFile(const std::string &fn)
         {
             current_fn = fn;
             // due to line number
-            cx = tb.getLLength(0) + lnw;
+            cx = tb.getLLength(0) + LNW;
             cy = 0;
             ox = 0;
             oy = 0;

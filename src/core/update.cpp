@@ -11,7 +11,7 @@ void Editor::updateScreen()
 
     nfr = false;
 
-    avw = sw - lnw;
+    avw = sw - LNW;
     int ddl = 0;
 
     int vslc = 0;
@@ -36,6 +36,9 @@ void Editor::updateScreen()
         }
         vslc += wlc;
     }
+
+    // constant continuation line indentation
+    const int CON_INDENT = 5;
 
     // display buffer
     for (int fli = lgl; fli < static_cast<int>(tb.getLCount()) && ddl < sh - 1; ++fli)
@@ -108,9 +111,9 @@ void Editor::updateScreen()
     }
     else
     {
-        int cfx = cx - lnw;
+        int cfx = cx - LNW;
         int cfy = cy;
-        avw = sw - lnw;
+        avw = sw - LNW;
 
         int sy = 0;
         for (int i = oy; i < cfy; i++)
@@ -130,13 +133,14 @@ void Editor::updateScreen()
         int clo = cfx - ox;
         if (clo >= 0)
         {
-            sy += clo / avw;
+            int lsg = clo / avw;
+            sy += lsg;
             int sx = clo % avw;
 
-            if (clo < avw)
-                sx += lnw;
+            if (lsg == 0)
+                sx += LNW;
             else
-                sx += 5;
+                sx += CON_INDENT;
 
             pl->setCPos(sx, sy);
         }

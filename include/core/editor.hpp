@@ -38,7 +38,7 @@ class Editor
     bool nfr;
 
     int avw;
-    const int lnw = 7;
+    const int LNW = 7;
 
     void updateScreen();
     void processKE(const KEVENT &e);

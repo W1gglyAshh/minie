@@ -4,7 +4,7 @@
 
 void Editor::scrollTFit()
 {
-    avw = sw - lnw;
+    avw = sw - LNW;
 
     int tvsl = 0;
     for (int i = 0; i < cy; i++)
@@ -21,7 +21,7 @@ void Editor::scrollTFit()
         }
     }
 
-    int cfx = cx - lnw;
+    int cfx = cx - LNW;
     int clw = cfx / avw;
     tvsl += clw;
 
@@ -35,8 +35,8 @@ void Editor::scrollTFit()
     // vertical
     if (tvsl < oy)
         oy = tvsl;
-    else if (tvsl >= oy + (sh - 2))
-        oy = tvsl - (sh - 3);
+    else if (tvsl >= oy + (sh - 1))
+        oy = tvsl - (sh - 2);
 
     oy = std::max(0, oy);
 }
