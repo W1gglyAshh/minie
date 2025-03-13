@@ -3,3 +3,5 @@ compile_commands.json
 .clang-format
 .cache
 .fleet
+.vscode
+.idea

@@ -4,60 +4,64 @@
 
 void Editor::processKE(const KEVENT &e)
 {
+    bool ctc = false;
+
     if (e.k == KEY::CHAR)
     {
-        tb.insCh(cy, cx - 7, e.c);
+        tb.insCh(cy, cx - lnw, e.c);
         cx++;
-        mo = true;
+        ctc = true;
     }
     else if (e.k == KEY::ENTER)
     {
-        tb.splitLine(cy, cx - 7);
-        cx = 7;
+        tb.splitLine(cy, cx - lnw);
+        cx = lnw;
         cy++;
-        mo = true;
+        ctc = true;
+        nfr = true;
     }
     else if (e.k == KEY::TAB)
     {
         for (int i = 0; i < 4; i++)
         {
-            tb.insCh(cy, cx - 7, ' ');
+            tb.insCh(cy, cx - lnw, ' ');
             cx++;
         }
-        mo = true;
+        ctc = true;
     }
     else if (e.k == KEY::BACKSPACE)
     {
-        if (cx > 7)
+        if (cx > lnw)
         {
             cx--;
-            tb.delCh(cy, cx - 7);
-            mo = true;
+            tb.delCh(cy, cx - lnw);
+            ctc = true;
         }
         else if (cy > 0)
         {
-            cx = tb.getLLength(cy - 1) + 7;
+            cx = tb.getLLength(cy - 1) + lnw;
             tb.joinLines(cy - 1);
             cy--;
-            mo = true;
+            ctc = true;
+            nfr = true;
         }
     }
     else if (e.k == KEY::LEFT)
     {
-        if (cx > 7)
+        if (cx > lnw)
         {
             mvCursor(-1, 0);
         }
-        else if (cy > 0 && cx <= 7)
+        else if (cy > 0 && cx <= lnw)
         {
             cy--;
-            cx = tb.getLLength(cy) + 7;
+            cx = tb.getLLength(cy) + lnw;
             scrollTFit();
         }
     }
     else if (e.k == KEY::RIGHT)
     {
-        int mx = tb.getLLength(cy) + 7;
+        int mx = tb.getLLength(cy) + lnw;
         if (cx < mx)
         {
             mvCursor(1, 0);
@@ -65,31 +69,33 @@ void Editor::processKE(const KEVENT &e)
         else if (cy < tb.getLCount() - 1)
         {
             cy++;
-            cx = 7;
+            cx = lnw;
             scrollTFit();
         }
     }
     else if (e.k == KEY::UP)
     {
         mvCursor(0, -1);
-        if (cx < 7)
-            cx = 7;
+        if (cx < lnw)
+            cx = lnw;
     }
     else if (e.k == KEY::DOWN)
     {
         mvCursor(0, 1);
-        if (cx < 7)
-            cx = 7;
+        if (cx < lnw)
+            cx = lnw;
     }
     // mouse scroll function is temporarily removed due to an issue
 
     scrollTFit();
+
+    mo = ctc;
 }
 
 void Editor::mvCursor(int dx, int dy)
 {
-    int avw = sw - 7;
-    int cfx = cx - 7;
+    avw = sw - lnw;
+    int cfx = cx - lnw;
 
     if (dy != 0)
     {
@@ -98,7 +104,7 @@ void Editor::mvCursor(int dx, int dy)
 
         int ll = tb.getLLength(cy);
         if (cfx > ll)
-            cx = ll + 7;
+            cx = ll + lnw;
     }
 
     if (dx != 0)
@@ -114,8 +120,8 @@ void Editor::mvCursor(int dx, int dy)
                 cx += dx;
         }
 
-        if (cx < 7)
-            cx = 7;
+        if (cx < lnw)
+            cx = lnw;
     }
 
     scrollTFit();

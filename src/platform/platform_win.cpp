@@ -26,10 +26,7 @@ WinPl::~WinPl()
     disableASB();
 }
 
-bool WinPl::init()
-{
-    return (hin != INVALID_HANDLE_VALUE && hout != INVALID_HANDLE_VALUE);
-}
+bool WinPl::init() { return (hin != INVALID_HANDLE_VALUE && hout != INVALID_HANDLE_VALUE); }
 
 void WinPl::shutdown()
 {
@@ -67,11 +64,9 @@ bool WinPl::pollKEvent(KEVENT &e)
         {
             auto &key = ir.Event.KeyEvent;
 
-            e.ctrl = (key.dwControlKeyState &
-                      (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
+            e.ctrl = (key.dwControlKeyState & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
             e.shift = (key.dwControlKeyState & SHIFT_PRESSED) != 0;
-            e.alt = (key.dwControlKeyState &
-                     (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
+            e.alt = (key.dwControlKeyState & (LEFT_ALT_PRESSED | RIGHT_ALT_PRESSED)) != 0;
 
             switch (key.wVirtualKeyCode)
             {
@@ -127,8 +122,7 @@ bool WinPl::pollKEvent(KEVENT &e)
                     e.k = KEY::MOUSEDOWN;
                     return true;
                 }
-                else if ((mve.dwButtonState & FROM_LEFT_1ST_BUTTON_PRESSED) ==
-                         0)
+                else if ((mve.dwButtonState & FROM_LEFT_1ST_BUTTON_PRESSED) == 0)
                 {
                     static bool wdo = false;
                     if (wdo)
@@ -157,8 +151,7 @@ void WinPl::clrScreen()
         cell_count = csbi.dwSize.X * csbi.dwSize.Y;
 
         FillConsoleOutputCharacter(hout, ' ', cell_count, hco, &count);
-        FillConsoleOutputAttribute(hout, csbi.wAttributes, cell_count, hco,
-                                   &count);
+        FillConsoleOutputAttribute(hout, csbi.wAttributes, cell_count, hco, &count);
         SetConsoleCursorPosition(hout, hco);
     }
 }
@@ -174,8 +167,7 @@ void WinPl::setCPos(int x, int y)
 void WinPl::writeStr(const std::string &str)
 {
     DWORD wrt;
-    WriteConsole(hout, str.c_str(), static_cast<DWORD>(str.length()), &wrt,
-                 nullptr);
+    WriteConsole(hout, str.c_str(), static_cast<DWORD>(str.length()), &wrt, nullptr);
 }
 
 // no need for refreshing screen in Windows

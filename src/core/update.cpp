@@ -9,14 +9,11 @@ void Editor::updateScreen()
     pl->clrScreen();
     pl->getScreenSize(sw, sh);
 
-    // byte count
-    int bc = 0;
+    nfr = false;
 
-    // for line wrapping
-    int avw = sw - 7;
+    avw = sw - lnw;
     int ddl = 0;
 
-    // calc visible lines
     int vslc = 0;
     int lgl = 0;
     int vslo = 0;
@@ -41,8 +38,7 @@ void Editor::updateScreen()
     }
 
     // display buffer
-    for (int fli = lgl; fli < static_cast<int>(tb.getLCount()) && ddl < sh - 1;
-         ++fli)
+    for (int fli = lgl; fli < static_cast<int>(tb.getLCount()) && ddl < sh - 1; ++fli)
     {
         const std::string &cul = tb.getL(fli);
         int ll = cul.length();
@@ -52,8 +48,6 @@ void Editor::updateScreen()
             nwl = (ll - ox + avw - 1) / avw;
         else
             nwl = 1;
-
-        int startWsg = (fli == lgl) ? vslo : 0;
 
         for (int wsg = 0; wsg < nwl && ddl < sh - 1; ++wsg)
         {
@@ -66,7 +60,7 @@ void Editor::updateScreen()
 
             int sp = ox + (wsg * avw);
 
-            std::string dsg = "";
+            std::string dsg;
             if (sp < ll)
             {
                 int sgl = std::min(avw, ll - sp);
@@ -86,21 +80,19 @@ void Editor::updateScreen()
         ddl++;
     }
 
-    // calculate the byte size of the file
+    int bc = 0;
     for (int n = 0; n < static_cast<int>(tb.getLCount()); n++)
     {
         bc += tb.getLLength(n);
     }
 
-    // display status line
     pl->setCPos(0, sh - 1);
     std::stringstream ss;
-    ss << " " << (current_fn.empty() ? "[NEW FILE]" : current_fn)
-       << (mo ? "[+]" : "") << " - " << cy + 1 << " Ln " << cx + 1 << " Col, "
-       << bc << " B";
+    ss << " " << (current_fn.empty() ? "[NEW FILE]" : current_fn) << (mo ? "[+]" : "") << " - "
+       << cy + 1 << " Ln " << cx + 1 << " Col, " << bc << " B";
 
     if (!sm.empty())
-        ss << " │ " << sm;
+        ss << " | " << sm;
 
     std::string ssl = ss.str();
     if (ssl.length() > static_cast<size_t>(sw))
@@ -108,9 +100,6 @@ void Editor::updateScreen()
     else
         ssl.append(sw - ssl.length(), ' ');
 
-    // set alternate background and foreground color
-    pl->writeStr("\x1b[107;30m" + std::string(sw, ' ') + "\x1b[0m");
-    pl->setCPos(0, sh - 1);
     pl->writeStr("\x1b[107;30m" + ssl + "\x1b[0m");
 
     if (mode == EMode::CMD)
@@ -119,9 +108,9 @@ void Editor::updateScreen()
     }
     else
     {
-        int cfx = cx - 7;
+        int cfx = cx - lnw;
         int cfy = cy;
-        int avw = sw - 7;
+        avw = sw - lnw;
 
         int sy = 0;
         for (int i = oy; i < cfy; i++)
@@ -145,7 +134,7 @@ void Editor::updateScreen()
             int sx = clo % avw;
 
             if (clo < avw)
-                sx += 7;
+                sx += lnw;
             else
                 sx += 5;
 
@@ -154,4 +143,6 @@ void Editor::updateScreen()
     }
 
     pl->refreshScreen();
+
+    mo = false;
 }

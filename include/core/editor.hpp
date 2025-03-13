@@ -35,6 +35,11 @@ class Editor
     int lnt;
     int lns;
 
+    bool nfr;
+
+    int avw;
+    const int lnw = 7;
+
     void updateScreen();
     void processKE(const KEVENT &e);
     void mvCursor(int dx, int dy);

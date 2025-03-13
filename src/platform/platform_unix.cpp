@@ -11,10 +11,7 @@
 #include <termios.h>
 #include <unistd.h>
 
-UnixPl::UnixPl() : raw(false), mouse(false), asb(false)
-{
-    memset(&orig, 0, sizeof(orig));
-}
+UnixPl::UnixPl() : raw(false), mouse(false), asb(false) { memset(&orig, 0, sizeof(orig)); }
 
 UnixPl::~UnixPl()
 {
