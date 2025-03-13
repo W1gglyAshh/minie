@@ -5,9 +5,10 @@
 #include <string>
 
 Editor::Editor()
-    : pl(nullptr), cx(lnw), cy(0), ox(0), oy(0), sw(0), sh(0), mo(false), nfr(true),
-      mode(EMode::NOR), lnk(0), lnh(0), lns(1)
+    : pl(nullptr), cx(0), cy(0), ox(0), oy(0), sw(0), sh(0), mo(false), nfr(true), mode(EMode::NOR),
+      lnk(0), lnh(0), lns(1)
 {
+    cx = lnw;
 }
 
 Editor::~Editor()
