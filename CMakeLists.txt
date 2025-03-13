@@ -15,6 +15,7 @@ project(minie)
 
 
 file(GLOB SRC
+	"src/**/*.cpp"
 	"src/*.cpp"
 )
 add_executable(minie ${SRC})
