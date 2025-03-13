@@ -1,7 +1,7 @@
 #pragma once
 
 #include "buffer.hpp"
-#include "platform.hpp"
+#include "platform/platform.hpp"
 
 #include <string>
 

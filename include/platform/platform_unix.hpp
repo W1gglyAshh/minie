@@ -2,7 +2,7 @@
 
 #if defined(__APPLE__) || defined(__unix__)
 
-#include "platform.hpp"
+#include "platform/platform.hpp"
 
 #include <sys/ioctl.h>
 #include <termios.h>

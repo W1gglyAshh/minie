@@ -1,12 +1,12 @@
-#include "platform.hpp"
+#include "platform/platform.hpp"
 
 #ifdef _WIN32
 
-#include "platform_win.hpp"
+#include "platform/platform_win.hpp"
 
 #elif defined(__APPLE__) || defined(__unix__)
 
-#include "platform_unix.hpp"
+#include "platform/platform_unix.hpp"
 
 #endif
 

@@ -2,7 +2,7 @@
 
 #ifdef _WIN32
 
-#include "platform.hpp"
+#include "platform/platform.hpp"
 
 #include <conios>
 #include <window.h>

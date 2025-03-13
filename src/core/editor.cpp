@@ -1,4 +1,4 @@
-#include "editor.hpp"
+#include "core/editor.hpp"
 
 #include <algorithm>
 #include <cstdio>
@@ -437,17 +437,23 @@ void Editor::scrollTFit()
 {
     int avw = sw - 8;
 
-    int cfx = cx - 8;
-    int csy = 0;
-
+    int acy = 0;
     for (int i = 0; i < cy; i++)
     {
         int ll = tb.getLLength(i);
-        int wls = std::max(1, (ll + avw - 1) / avw);
-        csy += wls;
+        if (ll <= ox)
+        {
+            acy += 1;
+        }
+        else
+        {
+            int vsl = ll - ox;
+            acy += (vsl + avw - 1) / avw;
+        }
     }
 
-    csy += cfx / avw;
+    int cfx = cx - 8;
+    acy += cfx / avw;
 
     // horizontal
     int wrx = cfx % avw;
@@ -457,10 +463,10 @@ void Editor::scrollTFit()
         ox = wrx - avw + 1;
 
     // vertical
-    if (csy < oy)
-        oy = csy;
-    else if (csy >= oy + sh - 1)
-        oy = csy - sh + 2;
+    if (acy < oy)
+        oy = acy;
+    else if (acy >= oy + sh - 1)
+        oy = acy - sh + 2;
 }
 
 void Editor::toggleCmdP()
