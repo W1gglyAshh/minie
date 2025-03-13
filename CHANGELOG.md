@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhance the visual experience of command palette.
 - Support line wrapping to avoid exceeding screen width.
 - Use printf() instead of write() in Editor::writeStr().
+- Support Windows.
 
 ### Fixed
 
