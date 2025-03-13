@@ -1,3 +1,5 @@
+/* Copyright (C) 2025 Gabriel LU - Licensed under GPL v2 */
+
 #include "core/editor.hpp"
 
 #include <string>

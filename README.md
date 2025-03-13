@@ -2,9 +2,9 @@
 
 ## A minimal text editor
 
-This project is inspired by kilo and vim.
+This project is licensed under GPL v2
 
-It is a cross-platform (well, not now, but it will be), light weight text editor written in C++
+It is a cross-platform, light weight text editor written in C++, inspired by kilo and helix-editor.
 
 ## Usage
 

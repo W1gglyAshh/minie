@@ -1,3 +1,5 @@
+/* Copyright (C) 2025 Gabriel LU - Licensed under GPL v2 */
+
 #pragma once
 
 #if defined(__APPLE__) || defined(__unix__)

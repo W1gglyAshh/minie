@@ -1,3 +1,5 @@
+/* Copyright (C) 2025 Gabriel LU - Licensed under GPL v2 */
+
 #ifdef _WIN32
 
 #include "platform/platform_win.hpp"
