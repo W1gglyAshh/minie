@@ -11,7 +11,7 @@ void Editor::updateScreen()
     int bc = 0;
 
     // for line wrapping
-    int avw = sw - 8;
+    int avw = sw - 7;
     int ddl = 0;
 
     // calc visible lines
@@ -98,7 +98,7 @@ void Editor::updateScreen()
        << bc << " B";
 
     if (!sm.empty())
-        ss << " | " << sm;
+        ss << " │ " << sm;
 
     std::string ssl = ss.str();
     if (ssl.length() > static_cast<size_t>(sw))
@@ -117,9 +117,9 @@ void Editor::updateScreen()
     }
     else
     {
-        int cfx = cx - 8;
+        int cfx = cx - 7;
         int cfy = cy;
-        int avw = sw - 8;
+        int avw = sw - 7;
 
         int sy = 0;
         for (int i = oy; i < cfy; i++)
@@ -143,7 +143,7 @@ void Editor::updateScreen()
             int sx = clo % avw;
 
             if (clo < avw)
-                sx += 8;
+                sx += 7;
             else
                 sx += 5;
 

@@ -2,7 +2,7 @@
 
 void Editor::scrollTFit()
 {
-    int avw = sw - 8;
+    int avw = sw - 7;
 
     int tvsl = 0;
     for (int i = 0; i < cy; i++)
@@ -19,7 +19,7 @@ void Editor::scrollTFit()
         }
     }
 
-    int cfx = cx - 8;
+    int cfx = cx - 7;
     int clw = cfx / avw;
     tvsl += clw;
 

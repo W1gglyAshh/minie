@@ -1,10 +1,9 @@
 #include "core/editor.hpp"
 
-#include <algorithm>
 #include <string>
 
 Editor::Editor()
-    : pl(nullptr), cx(8), cy(0), ox(0), oy(0), sw(0), sh(0), mo(false),
+    : pl(nullptr), cx(7), cy(0), ox(0), oy(0), sw(0), sh(0), mo(false),
       mode(EMode::NOR), lnk(0), lnh(0), lns(1)
 {
 }
@@ -89,15 +88,15 @@ void Editor::run()
 std::string Editor::calcLn(int t)
 {
     if (t < 10)
-        return "    " + std::to_string(t) + " │ ";
+        return "    " + std::to_string(t) + "  ";
     else if (t < 100 && t >= 10)
-        return "   " + std::to_string(t) + " │ ";
+        return "   " + std::to_string(t) + "  ";
     else if (t < 1000 && t >= 100)
-        return "  " + std::to_string(t) + " │ ";
+        return "  " + std::to_string(t) + "  ";
     else if (t < 10000 && t >= 1000)
-        return " " + std::to_string(t) + " │ ";
+        return " " + std::to_string(t) + "  ";
     else
-        return std::to_string(t) + " │ ";
+        return std::to_string(t) + "  ";
     // I don’t accept files larger than 10k lines because only a stupid ass
     // would write something like that
 }

@@ -8,7 +8,7 @@ void Editor::oFile(const std::string &fn)
         {
             current_fn = fn;
             // due to line number
-            cx = tb.getLLength(0) + 8;
+            cx = tb.getLLength(0) + 7;
             cy = 0;
             ox = 0;
             oy = 0;
@@ -29,7 +29,7 @@ bool Editor::sFile(const std::string &fn)
     std::string sfn = fn.empty() ? current_fn : fn;
     if (sfn.empty())
     {
-        sm = "ERROR: NO FILENAME SPECIFIED";
+        sm = "\x1b[31mERROR: NO FILENAME SPECIFIED\x1b[30m";
         return false;
     }
 
@@ -44,7 +44,7 @@ bool Editor::sFile(const std::string &fn)
     }
     else
     {
-        sm = "ERROR SAVING FILE: " + sfn;
+        sm = "\x1b[31mERROR SAVING FILE: \x1b[30m" + sfn;
         return false;
     }
 }
